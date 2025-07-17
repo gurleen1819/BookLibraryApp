@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,12 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView
+  SafeAreaView,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { Linking } from 'react-native';
-
-
-
 
 export default function BookDetailScreen({ route }) {
   const { book } = route.params;
@@ -24,7 +21,6 @@ export default function BookDetailScreen({ route }) {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
- 
   useEffect(() => {
     const loadBorrowedBooks = async () => {
       try {
@@ -41,7 +37,6 @@ export default function BookDetailScreen({ route }) {
 
   const isBorrowed = borrowedBooks.some(b => b.id === book.id);
 
-  // Borrow book logic
   const borrowBook = async () => {
     try {
       if (borrowedBooks.length >= 3) {
@@ -52,10 +47,15 @@ export default function BookDetailScreen({ route }) {
         Alert.alert('Already Borrowed', `${book.title} is already in your borrowed list.`);
         return;
       }
+      if (!book.available) {
+        Alert.alert('Not Available', `${book.title} is not available for borrowing.`);
+        return;
+      }
       const updatedBooks = [...borrowedBooks, book];
       setBorrowedBooks(updatedBooks);
       await AsyncStorage.setItem('borrowedBooks', JSON.stringify(updatedBooks));
       Alert.alert('Success', `${book.title} has been borrowed.`);
+      navigation.navigate('Borrowed');
     } catch (error) {
       Alert.alert('Error', 'Failed to borrow book. Please try again.');
     }
@@ -72,16 +72,13 @@ export default function BookDetailScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-     
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color="#000" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-       
         <Image source={{ uri: book.image }} style={styles.image} />
 
-    
         <Text style={styles.title}>{book.title}</Text>
         <Text style={styles.author}>{book.author}</Text>
 
@@ -89,10 +86,8 @@ export default function BookDetailScreen({ route }) {
           {book.available ? 'Available' : 'Not Available'}
         </Text>
 
-        
         <Text style={styles.borrowedCount}>Borrowed: {borrowedBooks.length}/3</Text>
 
-       
         <View style={styles.metaInfo}>
           {book.year && (
             <Text style={styles.metaText}>📅 <Text style={styles.bold}>Year:</Text> {book.year}</Text>
@@ -105,10 +100,8 @@ export default function BookDetailScreen({ route }) {
           )}
         </View>
 
-       
         <Text style={styles.desc}>{book.description}</Text>
 
-       
         <TouchableOpacity
           onPress={() => Linking.openURL(`https://www.google.com/search?q=${encodeURIComponent(book.title)} book`)}
         >
@@ -116,7 +109,6 @@ export default function BookDetailScreen({ route }) {
         </TouchableOpacity>
       </ScrollView>
 
-     
       <TouchableOpacity
         style={[styles.borrowButton, (!book.available || isBorrowed) && { backgroundColor: 'gray' }]}
         onPress={borrowBook}
@@ -152,8 +144,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   borrowText: { color: '#fff', fontSize: 18, marginLeft: 8 },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' }
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

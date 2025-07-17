@@ -14,13 +14,11 @@ const Stack = createStackNavigator();
 function HomeStack() {
   return (
     <Stack.Navigator>
-     
       <Stack.Screen
         name="BookList"
         component={BookListScreen}
         options={{ title: 'Book Library' }}
       />
-    
       <Stack.Screen
         name="BookDetail"
         component={BookDetailScreen}
@@ -35,7 +33,7 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          headerShown: false, 
+          headerShown: false,
           tabBarIcon: ({ color, size }) => {
             let iconName;
             if (route.name === 'Home') iconName = 'book-outline';
@@ -44,7 +42,6 @@ export default function App() {
           },
         })}
       >
-     
         <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: 'Home' }} />
         <Tab.Screen name="Borrowed" component={BorrowedBooksScreen} options={{ title: 'Borrowed Books' }} />
       </Tab.Navigator>

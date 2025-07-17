@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -7,13 +7,20 @@ export default function BookListScreen({ navigation }) {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBooks = async () => {
-      const querySnapshot = await getDocs(collection(db, 'books'));
-      const booksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setBooks(booksData);
-      setFilteredBooks(booksData);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'books'));
+        const booksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setBooks(booksData);
+        setFilteredBooks(booksData);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchBooks();
   }, []);
@@ -29,6 +36,15 @@ export default function BookListScreen({ navigation }) {
       setFilteredBooks(books);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#6200ee" />
+        <Text>Loading books...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -86,4 +102,5 @@ const styles = StyleSheet.create({
   title: { fontWeight: 'bold', fontSize: 17, marginBottom: 4 },
   author: { color: '#555', fontSize: 14 },
   emptyText: { textAlign: 'center', marginTop: 20, color: '#777' },
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
