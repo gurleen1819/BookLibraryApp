@@ -32,7 +32,6 @@ export default function BookListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.header}>Book Library</Text> */}
       <TextInput
         style={styles.searchBar}
         placeholder="Search books..."
@@ -43,24 +42,48 @@ export default function BookListScreen({ navigation }) {
         data={filteredBooks}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.bookItem} onPress={() => navigation.navigate('BookDetail', { book: item })}>
+          <TouchableOpacity
+            style={styles.bookCard}
+            onPress={() => navigation.navigate('BookDetail', { book: item })}
+          >
             <Image source={{ uri: item.image }} style={styles.image} />
-            <View>
+            <View style={styles.info}>
               <Text style={styles.title}>{item.title}</Text>
-              <Text>{item.author}</Text>
+              <Text style={styles.author}>{item.author}</Text>
             </View>
           </TouchableOpacity>
         )}
+        ListEmptyComponent={<Text style={styles.emptyText}>No books found.</Text>}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-  searchBar: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8, marginBottom: 10 },
-  bookItem: { flexDirection: 'row', marginBottom: 10, alignItems: 'center' },
-  image: { width: 50, height: 70, marginRight: 10 },
-  title: { fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, padding: 15, backgroundColor: '#f9f9f9' },
+  searchBar: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+  },
+  bookCard: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+    alignItems: 'center',
+  },
+  image: { width: 60, height: 90, borderRadius: 6, marginRight: 15 },
+  info: { flex: 1 },
+  title: { fontWeight: 'bold', fontSize: 17, marginBottom: 4 },
+  author: { color: '#555', fontSize: 14 },
+  emptyText: { textAlign: 'center', marginTop: 20, color: '#777' },
 });
