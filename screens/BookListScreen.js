@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform, 
+  Alert,
+} from 'react-native';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -13,11 +25,18 @@ export default function BookListScreen({ navigation }) {
     const fetchBooks = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'books'));
-        const booksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const booksData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setBooks(booksData);
         setFilteredBooks(booksData);
       } catch (error) {
         console.error('Error fetching books:', error);
+        Alert.alert(
+          'Error',
+          'Failed to load books from the server. Please check your internet connection and try again.'
+        );
       } finally {
         setLoading(false);
       }
@@ -25,17 +44,21 @@ export default function BookListScreen({ navigation }) {
     fetchBooks();
   }, []);
 
-  const handleSearch = (text) => {
-    setSearch(text);
-    if (text) {
-      const filtered = books.filter(book =>
-        book.title.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredBooks(filtered);
-    } else {
-      setFilteredBooks(books);
-    }
-  };
+ const handleSearch = (text) => {
+  console.log('Typing:', text); 
+  setSearch(text);
+  if (text.trim() !== '') {
+    const filtered = books.filter(book =>
+      ((book.title || '').toLowerCase().includes(text.toLowerCase())) ||
+      ((book.author || '').toLowerCase().includes(text.toLowerCase()))
+    );
+    setFilteredBooks(filtered);
+  } else {
+    setFilteredBooks(books);
+  }
+};
+
+
 
   if (loading) {
     return (
@@ -47,16 +70,24 @@ export default function BookListScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search books..."
-        value={search}
-        onChangeText={handleSearch}
-      />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+     <TextInput
+  style={styles.searchBar}
+  placeholder="Search books..."
+  value={search}        
+  onChangeText={handleSearch}
+  editable={true}
+  autoCorrect={false}
+  autoCapitalize="none"
+/>
+
       <FlatList
         data={filteredBooks}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
+        keyboardShouldPersistTaps="handled"
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.bookCard}
@@ -69,9 +100,11 @@ export default function BookListScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No books found.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No books found. Try a different keyword.</Text>
+        }
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -84,6 +117,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
   bookCard: {
     flexDirection: 'row',
@@ -101,6 +135,6 @@ const styles = StyleSheet.create({
   info: { flex: 1 },
   title: { fontWeight: 'bold', fontSize: 17, marginBottom: 4 },
   author: { color: '#555', fontSize: 14 },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#777' },
+  emptyText: { textAlign: 'center', marginTop: 20, color: '#777', fontSize: 16 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
